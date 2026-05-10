@@ -7,6 +7,8 @@ await Promise.all([
   cp('manifest.webmanifest', 'dist/manifest.webmanifest'),
   cp('icon.svg', 'dist/icon.svg'),
   cp('src/main.js', 'dist/src/main.js'),
+  cp('src/react-lite.js', 'dist/src/react-lite.js'),
+  cp('src/react-dom-lite.js', 'dist/src/react-dom-lite.js'),
   cp('src/styles.css', 'dist/src/styles.css'),
 ]);
 console.log('Static app built to dist/');
