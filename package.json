@@ -2,9 +2,11 @@
   "name": "shift-palette",
   "type": "module",
   "scripts": {
+    "dev": "node scripts/dev-server.js --dir .",
+    "start": "npm run dev",
     "build": "node scripts/build.js",
-    "dev": "python3 -m http.server 4173",
-    "preview": "python3 -m http.server 4173 -d dist"
+    "preview": "node scripts/dev-server.js --dir dist",
+    "test": "node scripts/smoke-test.js"
   },
   "dependencies": {},
   "devDependencies": {}
