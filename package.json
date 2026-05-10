@@ -1,0 +1,11 @@
+{
+  "name": "shift-palette",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "dev": "python3 -m http.server 4173",
+    "preview": "python3 -m http.server 4173 -d dist"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
