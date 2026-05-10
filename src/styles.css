@@ -27,7 +27,7 @@ button { border: 0; cursor: pointer; }
   padding: max(18px, env(safe-area-inset-top)) 14px max(30px, env(safe-area-inset-bottom));
 }
 
-.hero, .calendar-card, .editor-card, .share-card {
+.hero, .calendar-card, .editor-card, .share-card, .privacy-card {
   border: 1px solid rgba(255, 143, 171, 0.26);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.86);
@@ -67,8 +67,10 @@ h1 { margin-bottom: 10px; font-size: clamp(2rem, 10vw, 3.3rem); line-height: .95
 .memo { display: block; margin-top: 4px; color: #4f4a63; font-size: .58rem; line-height: 1.22; word-break: break-all; }
 .memo.private { color: #d9467d; }
 
-.editor-card, .share-card { display: grid; gap: 16px; margin-top: 16px; padding: 20px; }
-.editor-card h2, .share-card h2 { margin-bottom: 0; }
+.editor-card, .share-card, .privacy-card { display: grid; gap: 16px; margin-top: 16px; padding: 20px; }
+.editor-card h2, .share-card h2, .privacy-card h2 { margin-bottom: 0; }
+.privacy-card { border-color: rgba(57, 183, 165, .28); background: rgba(242, 255, 251, .9); }
+.privacy-card p { margin: 0; color: #52605f; line-height: 1.65; }
 label { display: grid; gap: 8px; color: #4f4a63; font-weight: 800; }
 select, input { width: 100%; min-height: 48px; border: 1px solid #eadfed; border-radius: 16px; padding: 0 14px; color: #28243d; background: #fff; outline: none; }
 select:focus, input:focus { border-color: #ff8fab; box-shadow: 0 0 0 4px rgba(255, 143, 171, .18); }
@@ -91,7 +93,7 @@ select:focus, input:focus { border-color: #ff8fab; box-shadow: 0 0 0 4px rgba(25
 
 @media print {
   body { background: #fff; }
-  .hero, .toolbar, .legend, .editor-card, .share-card { display: none; }
+  .hero, .toolbar, .legend, .editor-card, .share-card, .privacy-card { display: none; }
   .app-shell { width: 100%; padding: 0; }
   .calendar-card { box-shadow: none; border: 0; }
 }

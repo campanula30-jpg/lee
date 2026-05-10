@@ -1,5 +1,3 @@
-import './styles.css';
-
 const SHIFT_OPTIONS = [
   '早出１', '早出２', '早出３', '早出４', '早出５',
   '遅出１', '遅出２', '遅出３', '遅出４', '遅出５',
@@ -30,6 +28,9 @@ const STAMPS = [
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 const STORAGE_KEY = 'shift-palette-events';
+const MAX_MEMO_LENGTH = 80;
+const ALLOWED_SHIFTS = new Set(['', ...SHIFT_OPTIONS]);
+const ALLOWED_STAMPS = new Set(STAMPS.map((stamp) => stamp.id));
 const today = new Date();
 let currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 let selectedDate = formatDateKey(today);
@@ -74,10 +75,37 @@ function makeMonthDays(year, month) {
 
 function readEvents() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {};
+    return sanitizeEvents(JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {});
   } catch {
     return {};
   }
+}
+
+function sanitizeEvents(rawEvents) {
+  if (!rawEvents || typeof rawEvents !== 'object' || Array.isArray(rawEvents)) return {};
+
+  return Object.fromEntries(
+    Object.entries(rawEvents)
+      .filter(([dateKey]) => /^\d{4}-\d{2}-\d{2}$/.test(dateKey))
+      .map(([dateKey, event]) => [dateKey, sanitizeEvent(event)]),
+  );
+}
+
+function sanitizeEvent(event = {}) {
+  if (!event || typeof event !== 'object' || Array.isArray(event)) event = {};
+
+  const shift = ALLOWED_SHIFTS.has(event.shift) ? event.shift : '';
+  const stamp = ALLOWED_STAMPS.has(event.stamp) ? event.stamp : 'none';
+  return {
+    shift,
+    workMemo: sanitizeMemo(event.workMemo),
+    privateMemo: sanitizeMemo(event.privateMemo),
+    stamp,
+  };
+}
+
+function sanitizeMemo(value = '') {
+  return String(value).slice(0, MAX_MEMO_LENGTH);
 }
 
 function saveEvents() {
@@ -89,7 +117,7 @@ function selectedEvent() {
 }
 
 function updateEvent(patch) {
-  events = { ...events, [selectedDate]: { ...selectedEvent(), ...patch } };
+  events = { ...events, [selectedDate]: sanitizeEvent({ ...selectedEvent(), ...patch }) };
   saveEvents();
   render();
 }
@@ -130,6 +158,7 @@ function render() {
 
       ${renderEditor()}
       ${renderShareCard()}
+      ${renderPrivacyNotice()}
     </main>
   `;
   bindEvents();
@@ -149,7 +178,7 @@ function renderDayCell(cell) {
       style="--shift-color: ${style?.color ?? '#8f8aa3'}; --shift-bg: ${style?.bg ?? '#ffffff'}"
     >
       <span class="date-number">${cell.day}</span>
-      ${event.shift ? `<span class="shift-pill">${event.shift}</span>` : ''}
+      ${event.shift ? `<span class="shift-pill">${escapeHtml(event.shift)}</span>` : ''}
       ${stamp.icon ? `<span class="stamp" aria-label="${stamp.label}">${stamp.icon}</span>` : ''}
       ${event.workMemo ? `<span class="memo work">仕事: ${escapeHtml(event.workMemo)}</span>` : ''}
       ${event.privateMemo ? `<span class="memo private">私用: ${escapeHtml(event.privateMemo)}</span>` : ''}
@@ -179,12 +208,12 @@ function renderEditor() {
 
       <label>
         仕事の予定
-        <input id="work-memo" value="${escapeHtml(event.workMemo)}" placeholder="会議、研修、申し送りなど" />
+        <input id="work-memo" value="${escapeHtml(event.workMemo)}" maxlength="${MAX_MEMO_LENGTH}" placeholder="会議、研修、申し送りなど" />
       </label>
 
       <label>
         プライベートの予定
-        <input id="private-memo" value="${escapeHtml(event.privateMemo)}" placeholder="通院、買い物、食事など" />
+        <input id="private-memo" value="${escapeHtml(event.privateMemo)}" maxlength="${MAX_MEMO_LENGTH}" placeholder="通院、買い物、食事など" />
       </label>
 
       <div class="stamp-picker" aria-label="スタンプを選択">
@@ -208,6 +237,16 @@ function renderShareCard() {
       </div>
       <button type="button" class="share-button" id="share-button">スクショを共有</button>
       <p class="status" id="share-status" hidden></p>
+    </section>
+  `;
+}
+
+function renderPrivacyNotice() {
+  return `
+    <section class="privacy-card" aria-label="プライバシーと保存先">
+      <h2>プライバシー</h2>
+      <p>入力した予定はこの端末のブラウザ内（localStorage）だけに保存されます。外部サーバーやGitHubへ自動送信しません。</p>
+      <p>「スクショを共有」を押したときだけ、共有メニューで選んだ相手にカレンダー画像を送れます。</p>
     </section>
   `;
 }
@@ -301,8 +340,8 @@ function buildCalendarSvg() {
       parts.push(`<text x="${x + 20}" y="${y + 70}" font-size="18" font-weight="800" fill="#ffffff">${escapeXml(event.shift)}</text>`);
     }
     if (stamp.icon) parts.push(`<text x="${x + cellWidth - 38}" y="${y + 36}" font-size="28">${stamp.icon}</text>`);
-    if (event.workMemo) parts.push(`<text x="${x + 12}" y="${y + 104}" font-size="17" fill="#4f4a63">仕事: ${escapeXml(event.workMemo).slice(0, 10)}</text>`);
-    if (event.privateMemo) parts.push(`<text x="${x + 12}" y="${y + 130}" font-size="17" fill="#d9467d">私用: ${escapeXml(event.privateMemo).slice(0, 10)}</text>`);
+    if (event.workMemo) parts.push(`<text x="${x + 12}" y="${y + 104}" font-size="17" fill="#4f4a63">仕事: ${escapeXml(event.workMemo.slice(0, 10))}</text>`);
+    if (event.privateMemo) parts.push(`<text x="${x + 12}" y="${y + 130}" font-size="17" fill="#d9467d">私用: ${escapeXml(event.privateMemo.slice(0, 10))}</text>`);
   });
 
   parts.push('</svg>');
